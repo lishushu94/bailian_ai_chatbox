@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打字机效果测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .message {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            min-height: 40px;
+            position: relative;
+        }
+        .streaming-content {
+            font-family: inherit;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
+            transition: opacity 0.2s ease;
+            will-change: contents;
+        }
+        .streaming-content::after {
+            content: '|';
+            animation: cursor-blink 1.2s infinite;
+            color: #6c5ce7;
+            font-weight: bold;
+            margin-left: 2px;
+            opacity: 1;
+        }
+        @keyframes cursor-blink {
+            0%, 40% { opacity: 1; }
+            50%, 90% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        button {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #574b90;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 5px;
+            color: #2d5016;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>打字机效果测试</h1>
+        <p>测试修复后的打字机效果是否正常工作</p>
+        
+        <div class="status" id="status">准备就绪</div>
+        
+        <button onclick="testSimpleTyping()">测试简单打字效果</button>
+        <button onclick="testStreamingEffect()">测试流式效果</button>
+        <button onclick="testNoFlicker()">测试无闪烁</button>
+        <button onclick="clearMessages()">清空消息</button>
+        
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // 打字机效果函数 - 修复版本
+        function typeWriterEffect(element, text, speed = 30) {
+            // 获取当前内容长度，避免重复处理
+            const currentContent = element.innerHTML;
+            const startIndex = currentContent.length;
+            
+            // 如果文本没有变化，不进行处理
+            if (currentContent === text) {
+                return;
+            }
+            
+            let i = startIndex;
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML = text.substring(0, i + 1);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            
+            type();
+        }
+
+        function createMessage(text, useTyping = true) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'streaming-content';
+            
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            if (useTyping) {
+                typeWriterEffect(contentDiv, text, 50);
+            } else {
+                contentDiv.innerHTML = text;
+            }
+            
+            return contentDiv;
+        }
+
+        function testSimpleTyping() {
+            document.getElementById('status').textContent = '测试简单打字效果...';
+            const text = "这是一个简单的打字机效果测试。\n应该能够平滑地显示文本，没有闪烁。\n\n包括多行文本和特殊字符：!@#$%^&*()";
+            createMessage(text);
+            
+            setTimeout(() => {
+                document.getElementById('status').textContent = '简单打字效果测试完成';
+            }, 3000);
+        }
+
+        function testStreamingEffect() {
+            document.getElementById('status').textContent = '测试流式效果...';
+            const contentDiv = createMessage('', true);
+            
+            const fullText = "这是一个模拟流式响应的测试。\n文本应该逐渐出现，就像AI在实时输入一样。\n\n这包括：\n- 平滑的字符显示\n- 没有内容重置\n- 自然的书写节奏";
+            
+            let accumulated = '';
+            let index = 0;
+            
+            function addNextCharacter() {
+                if (index < fullText.length) {
+                    accumulated += fullText[index];
+                    index++;
+                    
+                    // 使用打字机效果显示累积内容
+                    typeWriterEffect(contentDiv, accumulated, 30);
+                    
+                    setTimeout(addNextCharacter, 100);
+                } else {
+                    document.getElementById('status').textContent = '流式效果测试完成';
+                }
+            }
+            
+            addNextCharacter();
+        }
+
+        function testNoFlicker() {
+            document.getElementById('status').textContent = '测试无闪烁效果...';
+            const contentDiv = createMessage('', true);
+            
+            let text = '';
+            const words = ['测试', '无', '闪烁', '效果', '。', '\n', '文本', '应该', '平滑', '显示', '，', '没有', '任何', '闪烁', '或', '重置', '。'];
+            let wordIndex = 0;
+            
+            function addNextWord() {
+                if (wordIndex < words.length) {
+                    text += words[wordIndex];
+                    wordIndex++;
+                    
+                    // 检查是否真的需要更新
+                    if (contentDiv.innerHTML !== text) {
+                        typeWriterEffect(contentDiv, text, 50);
+                    }
+                    
+                    setTimeout(addNextWord, 200);
+                } else {
+                    document.getElementById('status').textContent = '无闪烁测试完成';
+                }
+            }
+            
+            addNextWord();
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+            document.getElementById('status').textContent = '消息已清空';
+        }
+    </script>
+</body>
+</html>

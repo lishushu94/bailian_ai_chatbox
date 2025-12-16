@@ -709,11 +709,10 @@ function markdownToHtml(markdown) {
     html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     
-    // 图片 - 解码URL以避免双重编码问题
+    // 图片 - 保持URL原样，避免解码导致的问题
     html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, (match, alt, url) => {
-        // 解码URL中的编码字符（如%3D -> =）
-        const decodedUrl = decodeURIComponent(url);
-        return `<img src="${decodedUrl}" alt="${alt}" style="max-width: 100%; height: auto;">`;
+        // 保持URL原样，不进行解码，避免%3D等被错误转换
+        return `<img src="${url}" alt="${alt}" style="max-width: 100%; height: auto;">`;
     });
     
     // 链接 - 解码URL以避免双重编码问题
@@ -737,9 +736,9 @@ function markdownToHtml(markdown) {
 </script>
 
  <script>
-const apiUrl = 'http://127.0.0.1:8000/myapi/v1/chat-bot/stream';
-const botConfigurationUrl = 'http://127.0.0.1:8000/myapi/v1/chat-bot-config';
-const nonStreamApiUrl = 'http://127.0.0.1:8000/myapi/v1/chat-bot';
+const apiUrl = 'https://chat.liangdabiao.com/myapi/v1/chat-bot/stream';
+const botConfigurationUrl = 'https://chat.liangdabiao.com/myapi/v1/chat-bot-config';
+const nonStreamApiUrl = 'https://chat.liangdabiao.com/myapi/v1/chat-bot';
 const copyButtons = document.querySelectorAll('.lwh-open-cbot .copy-button');
 const button = document.querySelector('.lwh-open-cbot #submit-btn');
 let messageInput = document.querySelector('.lwh-open-cbot #message');
